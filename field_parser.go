@@ -69,6 +69,19 @@ func (ps *tagBaseFieldParser) FieldName() (string, error) {
 	var name string
 
 	if ps.field.Tag != nil {
+		pb := ps.tag.Get("protobuf")
+		if pb != "" {
+			subTags := strings.Split(pb, ",")
+			for _, tag := range subTags {
+				if strings.HasPrefix(tag, "json") {
+					name = strings.TrimSpace(strings.Split(tag, "=")[1])
+					if name != "" {
+						return name, nil
+					}
+				}
+			}
+		}
+
 		// json:"tag,hoge"
 		name = strings.TrimSpace(strings.Split(ps.tag.Get(jsonTag), ",")[0])
 		if name != "" {

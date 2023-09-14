@@ -1222,12 +1222,24 @@ func (parser *Parser) ParseDefinition(typeSpecDef *TypeSpecDef) (*Schema, error)
 	if len(typeSpecDef.Enums) > 0 {
 		var varnames []string
 		var enumComments = make(map[string]string)
-		for _, value := range typeSpecDef.Enums {
+
+		prefix := fmt.Sprintf("%s_", typeSpecDef.Name())
+		for i, value := range typeSpecDef.Enums {
+			if strings.HasPrefix(value.key, prefix) {
+				value.key = strings.SplitN(value.key, prefix, 2)[1]
+				value.Value = value.key
+
+				// Force type of enum to be string
+				// if any enum value name starts with the enum type name
+				definition.SchemaProps.Type = []string{"string"}
+			}
 			definition.Enum = append(definition.Enum, value.Value)
 			varnames = append(varnames, value.key)
 			if len(value.Comment) > 0 {
 				enumComments[value.key] = value.Comment
 			}
+
+			typeSpecDef.Enums[i] = value
 		}
 		if definition.Extensions == nil {
 			definition.Extensions = make(spec.Extensions)
